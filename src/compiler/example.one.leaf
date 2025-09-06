@@ -1,0 +1,10 @@
+tempo = 120
+scale = C minor
+
+track "lead" using synth("saw", { adsr:[0.01,0.1,0.2,0.2] }) {
+  notes  [C4, D#4, G4, A#4]
+  rhythm [1/8, 1/8, 1/4, 1/2]
+  fx     reverb(0.25)
+}
+
+scene "drop" 16 bars { unmute "lead" }

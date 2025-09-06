@@ -1,0 +1,41 @@
+LeafMusic {
+  Program     = (SEP | Statement)*
+
+  Statement   = Assignment | TrackDecl
+
+  Assignment  = Identifier _ "=" _ Expr
+
+  // Track declaration
+  TrackDecl   = "track" __ String __ "using" __ Synth _ Block
+
+  Synth       = "synth" _ "(" _ ArgList? _ ")"
+  ArgList     = Arg (_ "," _ Arg)*
+  Arg         = Expr
+
+  // Expressions including object/array
+  Expr        = String | Number | Identifier | ArrayLit | ObjLit
+
+  ArrayLit    = "[" _ (Expr (_ "," _ Expr)*)? _ "]"
+  ObjLit      = "{" _ (ObjPair (_ "," _ ObjPair)*)? _ "}"
+  ObjPair     = Identifier _ ":" _ Expr
+
+  String      = dqString | sqString
+  dqString    = "\"" (~"\"" any)* "\""
+  sqString    = "'" (~"'" any)* "'"
+
+  Number      = digit+ ("." digit+)?
+
+  Identifier  = identStart identCont*
+  identStart  = "_" | letter
+  identCont   = identStart | digit
+
+  // Permissive block: any content until a closing brace — we'll tighten later
+  Block       = _ "{" (~"}" any)* "}"
+
+  SEP         = _ (nl) _
+  _           = (WS | Comment)*
+  __          = (WS | nl | Comment)+
+  WS          = " " | "\t"
+  nl          = "\r\n" | "\n" | "\r"
+  Comment     = "//" (~nl any)* nl
+}

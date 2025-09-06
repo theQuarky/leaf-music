@@ -1,0 +1,24 @@
+LeafMusic {
+  Program     = (SEP | Statement)*
+
+  Statement   = Assignment
+
+  Assignment  = Identifier _ "=" _ Expr
+
+  Expr        = String | Number | Identifier
+
+  String      = dqString | sqString
+  dqString    = "\"" (~"\"" any)* "\""
+  sqString    = "'" (~"'" any)* "'"
+
+  Number      = digit+ ("." digit+)?
+
+  Identifier  = identStart identCont*
+  identStart  = "_" | letter
+  identCont   = identStart | digit
+
+  SEP         = _ (nl) _
+  _           = (Comment)*
+  nl          = "\r\n" | "\n" | "\r"
+  Comment     = "//" (~nl any)* nl
+}

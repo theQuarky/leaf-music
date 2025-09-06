@@ -1,0 +1,109 @@
+LeafMusic {
+  Program
+    = Statement*                             --seq
+
+  Statement
+    = Assignment
+    | TrackDecl
+    | DrumsDecl
+    | SceneDecl
+    | ProgressionDecl
+
+  Assignment
+    = ident "=" Expr
+
+  TrackDecl
+    = "track" string "using" Synth Block
+
+  DrumsDecl
+    = "drums" string "using" Samples Block
+
+  SceneDecl
+    = "scene" string Bars Block
+
+  ProgressionDecl
+    = "progression" ProgSpec
+
+  Synth
+    = "synth" "(" string ("," ObjLit)? ")"
+
+  Samples
+    = "samples" "(" string ")"
+
+  Bars
+    = number ("bar" | "bars")
+
+  Block
+    = "{" TrackStmt* "}"
+
+  TrackStmt
+    = NotesStmt
+    | RhythmStmt
+    | PatternStmt
+    | FxStmt
+    | GainStmt
+    | SwingStmt
+
+  NotesStmt
+    = "notes" NoteList
+
+  RhythmStmt
+    = "rhythm" RhythmList
+
+  PatternStmt
+    = "pattern" ident
+
+  FxStmt
+    = "fx" ident
+
+  GainStmt
+    = "gain" number
+
+  SwingStmt
+    = "swing" number
+
+  NoteList
+    = "[" ListOf<Note, ","> "]"
+
+  RhythmList
+    = "[" ListOf<Duration, ","> "]"
+
+  Duration
+    = number "/" number
+
+  ProgSpec
+    = ListOf<ProgToken, "|">
+
+  ProgToken
+    = RomanNumeral
+
+  RomanNumeral
+    = "I" | "II" | "III" | "IV" | "V" | "VI" | "VII"
+
+  Note
+    = pitch digit+
+
+  pitch
+    = "A".."G" ("#" | "b")?
+
+  ObjLit
+    = "{" ListOf<ObjPair, ","> "}"
+
+  ObjPair
+    = ident ":" Expr
+
+  Expr
+    = number
+    | string
+    | ident
+
+  ident
+    = letter (letter | digit)*
+
+  number
+    = digit+ ("." digit+)?  --float
+    | digit+               --int
+
+  string
+    = "\"" (~"\"" any)* "\""
+}
