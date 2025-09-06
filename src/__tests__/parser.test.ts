@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseToAST, parse, grammar } from '../compiler/parser'
+import { parseToAST, parse } from '../compiler/parser'
 import { parseMusic, noteToFrequency } from '../audio/generator'
 
 const sample = `

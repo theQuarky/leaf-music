@@ -2,7 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import Editor from '@monaco-editor/react'
 import './App.css'
 import { parse, parseToAST } from './compiler/parser';
+import * as Tone from 'tone'
+
+declare global {
+  interface Window {
+    __LEAF_PLAYER?: any
+  }
+}
 import Player from './audio/player'
+import { requestMIDIPermission, prettyMIDIPorts } from './audio/midi'
 // import raw grammar
 // @ts-ignore - Vite raw import
 import grammarRaw from './compiler/leafmusic.ohm?raw'
@@ -157,6 +165,76 @@ function App() {
           </label>
           <button className="btn" onClick={() => exportFile('mp3')}>Export MP3</button>
           <button className="btn" onClick={() => exportFile('mp4')}>Export MP4</button>
+          <button className="btn" onClick={async () => {
+            // Request Web MIDI access
+            try {
+              const res = await requestMIDIPermission()
+              if (res.ok) {
+                const pretty = prettyMIDIPorts(res.access)
+                console.debug('[midi] access granted', pretty)
+                alert(`MIDI access granted. Inputs: ${pretty.inputs.join(', ') || 'none'}; Outputs: ${pretty.outputs.join(', ') || 'none'}`)
+              } else {
+                console.warn('[midi] access denied or unavailable', res.error)
+                alert('MIDI access failed: ' + String(res.error))
+              }
+            } catch (e) {
+              console.error('[midi] request failed', e)
+              alert('MIDI request failed: ' + String(e))
+            }
+          }}>Request MIDI</button>
+            <button className="btn" onClick={async () => {
+              // Test smplr / guitar path with a short riff
+              if (playing) {
+              playerRef.current?.stop()
+              setPlaying(false)
+              return
+            }
+
+            const spec = {
+              tempo: 90,
+              tracks: [
+                {
+                  name: 'GuitarTest',
+                  synth: 'guitar',
+                  notes: [
+                    { pitch: 'E4', durationBeats: 0.125 },
+                    { pitch: 'G4', durationBeats: 0.125 },
+                    { pitch: 'A4', durationBeats: 0.25 },
+                    { pitch: 'E4', durationBeats: 0.125 },
+                    { pitch: 'D4', durationBeats: 0.125 },
+                    { pitch: 'E4', durationBeats: 0.5 },
+                  ],
+                },
+              ],
+            }
+
+            playerRef.current = new Player()
+            setPlaying(true)
+            try {
+              // preload the guitar instrument and log the backend used
+              try { await Tone.start() } catch (_) {}
+              const report = await playerRef.current.preloadInstrument('guitar')
+              console.debug('[Test Guitar] preload report=', report)
+              await playerRef.current.start(spec)
+            } catch (err) {
+              console.error('Test Guitar playback failed', err)
+            }
+            setPlaying(false)
+          }}>Test Guitar</button>
+          <button className="btn" onClick={async () => {
+            // Force a direct Tone.js smoke test (bypass Player)
+            try {
+              console.debug('[tone-test] before Tone.start, ctx=', Tone.context?.state)
+              await Tone.start()
+              console.debug('[tone-test] after Tone.start, ctx=', Tone.context?.state)
+              const s = new Tone.Synth().toDestination()
+              s.triggerAttackRelease('A4', '0.6')
+              // also try player testNote if present
+              try { window.__LEAF_PLAYER?.testNote && window.__LEAF_PLAYER.testNote('A4', 0.6) } catch (_) {}
+            } catch (e) {
+              console.error('[tone-test] failed', e)
+            }
+          }}>Force Tone Test</button>
           <button className="btn" onClick={async () => {
             if (playing) {
               playerRef.current?.stop()
